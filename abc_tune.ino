@@ -12,6 +12,9 @@ void main()
 {
     float frequency;
     long duration;
+    //frequency = note_frequency("A10");
+    //frequency = note_frequency("A1+");
+    //frequency = note_frequency("A1-");
     frequency = note_frequency("A1");
     printf("\nFrequency:\t\"%f\"", frequency);
     duration = note_duration(1);
