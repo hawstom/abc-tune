@@ -1,50 +1,69 @@
 #include <stdio.h>
 #include <math.h>
 
-const int FREQUENCY_A4 = 440;
-const int TEMPO = 120;
-const float DEFAULT_LENGTH = 0.125;
+const int A4_FREQUENCY = 440;
+const double A4_OFFSET = 4.75; // Octaves offset from C0 to A4, 9/12 octave above C4
+const int BPM = 120; // Beats per minute
+const float BPU = 1.0; // Beats per unit note
+int note_accidental(char note[4]);
+int note_octave(char note[4]);
+float note_octave_fraction(char note[4]);
+double note_exponent(char note[4]);
 float note_frequency(char note[4]);
-float note_fraction(int note_ordinal, int note_accidental);
 long note_duration(float duration);
 
 void main()
 {
     float frequency;
     long duration;
+    char note[4] = "A1";
+    float length = 1;
     //frequency = note_frequency("A10");
     //frequency = note_frequency("A1+");
     //frequency = note_frequency("A1-");
-    frequency = note_frequency("A1");
-    printf("\nFrequency:\t\"%f\"", frequency);
-    duration = note_duration(1);
-    printf("\nDuration:\t\"%li\"", duration);
+    printf("\nNote:\t\"%s\"", note);
+    printf("\nLetter:\t\"%c\"", note[0]);
+    printf("\nOctave:\t\"%i\"", note_octave(note));
+    printf("\nAccidental:\t\"%i\"", note_accidental(note));
+    printf("\nExponent:\t\"%f\"", note_exponent(note));
+    printf("\nASCII:\t\"%i\"", note[0]);
+    printf("\nFrequency:\t\"%f\"",note_frequency(note)); 
+    printf("\nBeats per minute:\t\"%i\"", BPM);
+    printf("\nBeats per unit note:\t\"%f\"", BPU);
+    printf("\nNote length (unit lengths):\t\"%f\"", length);
+    printf("\nNote duration (milliseconds):\t\"%li\"", note_duration(length));
+    printf("\nI will now play Mary had a Little Lamb.");  
+    play("E3",1);
+    play("D3",1);
+    play("C3",1);
+    play("D3",1);
+    play("E3",1);
+    play("E3",1);
+    play("E3",2);
+    play("D3",1);
+    play("D3",1);
+    play("D3",2);
+    play("E3",1);
+    play("G3",1);
+    play("G3",2);
 }
 
-float note_frequency(char note[4]) 
+int note_accidental(char note[4])
 {
-    float frequency;
-    double exponent;
-    double exponent_offset = 4.75; // A4 is 9/12 octave above C4
-    int note_ascii;
-    int note_ordinal;
-    int note_octave;
-    int note_accidental;
-    note_ascii = note[0];
-    note_ordinal = note_ascii - 64;
-    note_octave = note[1] - 48;
-    note_accidental = (!note[2] || note[2] == 48) ? 0 : (note[2] == 43 ? 1 : -1);
-    exponent = note_octave - exponent_offset + note_fraction(note_ordinal, note_accidental);
-    frequency = (float) FREQUENCY_A4 * pow(2, exponent);
-    printf("\nNote: \t\"%s\"\nLetter:\t\"%c\"\nNumber:\t\"%i\"\nOctave:\t\"%i\"\nAccidental:\t\"%i\"\nExponent:\t\"%f\"", note, note[0], note_ordinal, note_octave, note_accidental, exponent);
-    printf("\nOrdinal:\t\"%i\"", note_ordinal);
-
-    return frequency;
+   return (!note[2] || note[2] == 48) ? 0 : (note[2] == 43 ? 1 : -1); 
 }
 
-float note_fraction(int note_ordinal, int note_accidental)
+int note_octave(char note[4])
+{
+    return note[1] - 48;
+}
+
+// Returns the fraction of an octave a note of the notation "A4", "A4+", "A4-" is above the C of its octave.
+float note_octave_fraction(char note[4])
 {
     int half_steps;
+    int note_ascii = note[0];
+    int note_ordinal = note_ascii - 64;
     switch(note_ordinal) {
       case 1 :
         half_steps = 9; // A
@@ -70,12 +89,28 @@ float note_fraction(int note_ordinal, int note_accidental)
       default :
          printf("Invalid note letter\n" );
     }
-    half_steps = half_steps + note_accidental;
+    half_steps = half_steps + note_accidental(note);
     return half_steps / 12.0;
 }
 
+double note_exponent(char note[4])
+{
+    return note_octave(note) + note_octave_fraction(note) - A4_OFFSET;
+}
+
+float note_frequency(char note[4]) 
+{
+    return (float) A4_FREQUENCY * pow(2, note_exponent(note));
+}
 
 long note_duration(float note) 
 {
-    return (long) note * DEFAULT_LENGTH * 60000000 / TEMPO;
+    return (long) note * BPU * 60000 / BPM;
+}
+
+void play(char note[4], int length)
+{
+    printf("\nNote:\t\"%s\"",note); 
+    printf("\tFrequency:\t\"%f\"",note_frequency(note)); 
+    printf("\tDuration:\t\"%li\"", note_duration(length));  
 }
